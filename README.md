@@ -68,4 +68,7 @@ npm run build
 - 字段、状态、动作与流转目标集中在 `frontend/src/data/modules.ts`；示例数据在
   `frontend/src/data/seed.ts`。
 - 状态流转只允许在 `local-service.ts` 里改，页面组件不做业务判断。
+- 清洁验证的提交与判定共用 `frontend/src/api/clean-validation.ts` 里的同一份校验
+  （判定口径为准，提交只少验检测结果与签字），状态只能逐级往下流转，重复提交幂等，
+  流转结果按设备回写到灭菌验证清单。
 - 想回到初始数据：清掉浏览器里 `pharma-cleanroom:entries` 这一项，或调用 `resetModule(模块)`。

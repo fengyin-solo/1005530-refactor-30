@@ -1,3 +1,4 @@
+import { runCleanValidationAction } from '@/api/clean-validation'
 import { MODULE_BY_KEY } from '@/data/modules'
 import { allRows, listRows, resetRows, saveRows } from '@/data/local-store'
 import type { ActionResult, EntryRow, ModuleMeta, OverviewResult, PageResult } from '@/data/types'
@@ -33,6 +34,20 @@ export function runAction(key: string, id: number, action: string): ActionResult
   const target = meta.actionTargets[action]
   if (!target) {
     return { ok: false, message: `${meta.entity}没有登记「${action}」这个动作` }
+  }
+  // 清洁验证的提交与判定收拢到同一条实现（见 clean-validation.ts），两个入口共用：
+  // 逐级流转、跳级拒收、重复提交幂等，并把状态回写到灭菌验证清单。
+  if (key === 'cleanvalidate') {
+    const result = runCleanValidationAction(listRows('cleanvalidate'), listRows('sterilize'), id, action)
+    if (result.ok) {
+      if (result.cleanRows) {
+        saveRows('cleanvalidate', result.cleanRows)
+      }
+      if (result.sterilizeRows) {
+        saveRows('sterilize', result.sterilizeRows)
+      }
+    }
+    return { ok: result.ok, message: result.message }
   }
   const rows = listRows(key)
   const index = rows.findIndex((row) => Number(row.id) === id)
