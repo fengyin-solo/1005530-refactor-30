@@ -1,6 +1,11 @@
 import { MODULE_BY_KEY } from '@/data/modules'
 import { allRows, listRows, resetRows, saveRows } from '@/data/local-store'
 import type { ActionResult, EntryRow, ModuleMeta, OverviewResult, PageResult } from '@/data/types'
+import {
+  applyCleanValidationAction,
+  CLEANVALIDATE_KEY,
+  STERILIZE_KEY,
+} from '@/api/cleanvalidation'
 
 // 会写进数据的「往回走」动作：命中就把这条记录标成异常态，看板上能一眼看出来。
 const NEGATIVE_ACTIONS = ['撤销', '作废', '拒绝', '驳回', '停用', '忽略', '下线', '回滚']
@@ -29,6 +34,25 @@ export function listEntries(key: string, filters: Record<string, string> = {}): 
 }
 
 export function runAction(key: string, id: number, action: string): ActionResult {
+  // 清洁验证走共享判定实现：提交与判定两个入口同一条校验，状态机、幂等与灭菌清单回写都在里面。
+  if (key === CLEANVALIDATE_KEY) {
+    const outcome = applyCleanValidationAction(
+      listRows(CLEANVALIDATE_KEY),
+      listRows(STERILIZE_KEY),
+      id,
+      action,
+    )
+    if (!outcome.ok) {
+      return { ok: false, message: outcome.message }
+    }
+    if (outcome.rows) {
+      saveRows(CLEANVALIDATE_KEY, outcome.rows)
+    }
+    if (outcome.sterilizeRows) {
+      saveRows(STERILIZE_KEY, outcome.sterilizeRows)
+    }
+    return { ok: true, message: outcome.message }
+  }
   const meta = moduleMeta(key)
   const target = meta.actionTargets[action]
   if (!target) {

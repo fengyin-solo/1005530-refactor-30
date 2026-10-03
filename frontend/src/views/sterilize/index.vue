@@ -82,7 +82,7 @@ import {
 import type { EntryRow } from '@/data/types'
 
 const meta = moduleMeta('sterilize')
-const columns = ["验证编号", "灭菌设备", "灭菌程序", "装载方式", "温度探头数", "灭菌保持时间", "验证日期", "验证状态"]
+const columns = ["验证编号", "灭菌设备", "灭菌程序", "装载方式", "温度探头数", "灭菌保持时间", "验证日期", "验证状态", "清洁验证状态", "清洁规程"]
 const actions = ["提交验证", "确认验证", "作废验证"]
 const statuses = ["待验证", "灭菌中", "已验证", "已失效"]
 const stats = [{"label": "待验证程序", "value": 0}, {"label": "灭菌中批次", "value": 0}, {"label": "已验证程序", "value": 0}]
